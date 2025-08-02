@@ -1,16 +1,19 @@
+using Microsoft.EntityFrameworkCore;
 using MyFirstBlog.Helpers;
 using MyFirstBlog.Services;
 
 var  MyAllowLocalhostOrigins = "_myAllowLocalhostOrigins";
 
 var builder = WebApplication.CreateBuilder(args);
-
+Console.WriteLine("CNSTR => " + builder.Configuration.GetConnectionString("DefaultConnection"));
 var services = builder.Services;
 var env = builder.Environment;
 
 // Add services to the container.
 
-services.AddDbContext<DataContext>();
+services.AddDbContext<DataContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 
 services.AddCors(policyBuilder => {
     policyBuilder.AddPolicy( MyAllowLocalhostOrigins,
