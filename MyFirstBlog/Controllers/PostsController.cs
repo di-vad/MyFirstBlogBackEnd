@@ -1,34 +1,38 @@
-namespace MyFirstBlog.Controllers;
-
 using Microsoft.AspNetCore.Mvc;
 using MyFirstBlog.Dtos;
 using MyFirstBlog.Services;
 
 [ApiController]
 [Route("posts")]
+public class PostsController : ControllerBase
+{
+    private readonly IPostService _postService;
 
-public class PostsController : ControllerBase {
-    private IPostService _postService;
-
-    public PostsController(IPostService postService) {
+    public PostsController(IPostService postService)
+    {
         _postService = postService;
     }
 
-    // Get /posts
     [HttpGet]
-    public IEnumerable<PostDto> GetPosts() {
-        return _postService.GetPosts();
+    public IEnumerable<PostDto> GetPosts() => _postService.GetPosts();
+
+    [HttpGet("{slug}")]
+    public ActionResult<PostDto> GetPost(string slug)
+    {
+        var post = _postService.GetPost(slug);
+        if (post == null) return NotFound();
+        return post;
     }
 
-    // Get /posts/:slug
-    [HttpGet("{slug}")]
-    public ActionResult<PostDto> GetPost(string slug) {
-        var post = _postService.GetPost(slug);
-
-        if (post is null) {
-            return NotFound();
+    [HttpPost]
+    public ActionResult<object> CreatePost([FromBody] CreatePostRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Title))
+        {
+            return BadRequest(new { errors = new[] { "Title cannot be blank" } });
         }
 
-        return post;
+        var createdPost = _postService.CreatePost(request.Title, request.Description);
+        return Created(string.Empty, new { post = createdPost });
     }
 }
